@@ -3,7 +3,7 @@ title: "Data Manipulation Challenge"
 subtitle: "A Mental Model for Method Chaining in Pandas"
 format:
   html: default
-  pdf: default
+#  pdf: default
 execute:
   echo: true
   eval: true
@@ -217,8 +217,60 @@ What's wrong with the `lateStatement` assignment and how would you fix it?
 :::
 
 #### Briefly Give Answers to the Discussion Questions In This Section
+### <font color="green">Ramesh Govindaswamy's Answers</font>
 
-> Replace this with your answers to the discussion questions
+## Answer 1
+```{python}
+print ("Ans 1:")
+col_dtype = shipments_df['actualShipDate'].dtype
+print(f"\nData type of 'actualShipDate is': {col_dtype}")
+```
+
+## Answer 2
+```{python}
+print ("Ans 2:")
+print ("Let's compare 04-11-2025 and 05-20-2024 as strings and dates:")
+print ("\n*First we'll compare as strings")
+print ("-"*50)
+print(f"04-11-2025 > 05-20-2024 validates to: {'04-11-2025' > '05-20-2024'}")
+print(">Though 04-11-2025 is greater than 05-20-2024, when compared as strings, it shows 05-20-2024 as the greater date.")
+print ("\n*Now we'll compare as dates")
+print ("-"*50)
+print(f"04-11-2025 > 05-20-2024 validates to: {datetime.strptime('04-11-2025', '%m-%d-%Y') > datetime.strptime('05-20-2024', '%m-%d-%Y')}")
+print("Validation is correct !!!")
+print("This is why it is important to compare dates as dates, not as strings.")
+
+```
+## Answer 3
+```{python}
+print("Ans 3:\n")
+print(f"We cannot use shipments_df['is_late'] in the 'if' statement as it returns a data series which is compared against a single boolean value")
+
+print("The fix would be to use a map method in the lambda function as shown")
+
+shipments_with_lateness = (
+    shipments_df
+    .assign(
+        is_late=lambda df: df['actualShipDate'] > df['plannedShipDate'],
+        days_late=lambda df: (df['actualShipDate'] - df['plannedShipDate']).dt.days,
+        lateStatement=lambda df: df['is_late'].map({True: "Darn Shipment is Late", False: "Shipment is on Time"})
+    )
+)
+print("\nLate Shipments..")
+print(shipments_with_lateness[shipments_with_lateness['is_late'] == True].head(5))
+
+print("\nShipments on Time..")
+print(shipments_with_lateness[shipments_with_lateness['is_late'] == False].head(5))
+
+```
+
+``` {python}
+print("Sample Shipments")
+print()
+shipments_with_lateness[shipments_with_lateness['is_late'] == True].head(5)
+shipments_with_lateness[shipments_with_lateness['is_late'] == False].head(5)
+
+```
 
 ### 2. Subset: Querying Rows and Filtering Columns
 
