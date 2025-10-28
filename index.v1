@@ -221,11 +221,13 @@ What's wrong with the `lateStatement` assignment and how would you fix it?
 ::: {.callout-tip title="Assign 1 Answers"}
 **Ans1.**
 ```{python}
+print ("Ans 1:")
 col_dtype = shipments_df['actualShipDate'].dtype
 print(f"\nData type of 'actualShipDate is': {col_dtype}")
 ```
 **Ans2.**
 ```{python}
+print ("Ans 2:")
 print ("Let's compare 04-11-2025 and 05-20-2024 as strings and dates:")
 print ("\n*First we'll compare as strings")
 print ("-"*50)
@@ -235,13 +237,12 @@ print ("\n*Now we'll compare as dates")
 print ("-"*50)
 print(f"04-11-2025 > 05-20-2024 validates to: {datetime.strptime('04-11-2025', '%m-%d-%Y') > datetime.strptime('05-20-2024', '%m-%d-%Y')}")
 print("Validation is correct !!!")
+print("This is why it is important to compare dates as dates, not as strings.")
 ```
-<font color=blue> This is why it is important to compare dates as dates, not as strings. </font>
-
 **Ans3.**
-
-<font color=blue>We cannot use shipments_df['is_late'] in the 'if' statement as it returns a data series which is compared against a single boolean value </font>
 ```{python}
+print("Ans 3:\n")
+print(f"We cannot use shipments_df['is_late'] in the 'if' statement as it returns a data series which is compared against a single boolean value")
 
 print("The fix would be to use a map method in the lambda function as shown")
 
@@ -261,6 +262,60 @@ print(shipments_with_lateness[shipments_with_lateness['is_late'] == False].head(
 ```
 :::
 
+### <font color="green">Ramesh Govindaswamy's Answers</font>
+
+## Answer 1
+```{python}
+print ("Ans 1:")
+col_dtype = shipments_df['actualShipDate'].dtype
+print(f"\nData type of 'actualShipDate is': {col_dtype}")
+```
+
+## Answer 2
+```{python}
+print ("Ans 2:")
+print ("Let's compare 04-11-2025 and 05-20-2024 as strings and dates:")
+print ("\n*First we'll compare as strings")
+print ("-"*50)
+print(f"04-11-2025 > 05-20-2024 validates to: {'04-11-2025' > '05-20-2024'}")
+print(">Though 04-11-2025 is greater than 05-20-2024, when compared as strings, it shows 05-20-2024 as the greater date.")
+print ("\n*Now we'll compare as dates")
+print ("-"*50)
+print(f"04-11-2025 > 05-20-2024 validates to: {datetime.strptime('04-11-2025', '%m-%d-%Y') > datetime.strptime('05-20-2024', '%m-%d-%Y')}")
+print("Validation is correct !!!")
+print("This is why it is important to compare dates as dates, not as strings.")
+
+```
+## Answer 3
+```{python}
+print("Ans 3:\n")
+print(f"We cannot use shipments_df['is_late'] in the 'if' statement as it returns a data series which is compared against a single boolean value")
+
+print("The fix would be to use a map method in the lambda function as shown")
+
+shipments_with_lateness = (
+    shipments_df
+    .assign(
+        is_late=lambda df: df['actualShipDate'] > df['plannedShipDate'],
+        days_late=lambda df: (df['actualShipDate'] - df['plannedShipDate']).dt.days,
+        lateStatement=lambda df: df['is_late'].map({True: "Darn Shipment is Late", False: "Shipment is on Time"})
+    )
+)
+print("\nLate Shipments..")
+print(shipments_with_lateness[shipments_with_lateness['is_late'] == True].head(5))
+
+print("\nShipments on Time..")
+print(shipments_with_lateness[shipments_with_lateness['is_late'] == False].head(5))
+
+```
+
+``` {python}
+print("Sample Shipments")
+print()
+shipments_with_lateness[shipments_with_lateness['is_late'] == True].head(5)
+shipments_with_lateness[shipments_with_lateness['is_late'] == False].head(5)
+
+```
 
 ### 2. Subset: Querying Rows and Filtering Columns
 
@@ -298,25 +353,20 @@ print(late_shipments.head())
 **Question 1: Query vs Boolean Indexing**
 - What's the difference between using `.query('is_late == True')` and `[df['is_late'] == True]`?
 - Which approach is more readable and why?
-
+## Answer 1
+### * `.query('is_late == True')` 
+#### - Uses a string expression (SQL-like, concise).
+#### - Easier to read for simple filters    
+### * `[df['is_late'] == True]` 
+#### - Uses standard Pandas boolean indexing  (Pure Python expression)
+#### - More explicit and flexible 
+#### 
+#### Compared to boolean indexing, the .query() method is easier to read because it allows you to reference columns directly without repeatedly qualifying them with the DataFrame name. 
 **Question 2: Additional Row Querying**
 - Can you show an example of using a variable like `late_threshold` to query rows for shipments that are at least `late_threshold` days late, e.g. what if you wanted to query rows for shipments that are at least 5 days late?
 :::
 #### Briefly Give Answers to the Discussion Questions In This Section
-::: {.callout-tip title="Subset Answers"}
-**Ans.1**
-
-#### `.query('is_late == True')` 
-- Uses a string expression (SQL-like, concise).
-- Easier to read for simple filters    
-
-#### `[df['is_late'] == True]` 
-- Uses standard Pandas boolean indexing  (Pure Python expression)
-- More explicit and flexible 
- 
-<font color=blue> Compared to boolean indexing, the .query() method is easier to read because it allows you to reference columns directly without repeatedly qualifying them with the DataFrame name. </font> 
-
-**Ans.2**
+## Answer 2
 ```{python}
 # define variable late_threshold
 # Prefix '@' before the variable to use it in the expression
@@ -324,7 +374,6 @@ late_threshold = 5 # use this varible to filter late shipments that on or above 
 late_shipments.query('days_late >= @late_threshold').head(5)
 
 ```
-:::
 
 ### 3. Drop: Removing Unwanted Data
 
@@ -362,19 +411,7 @@ print("Remaining columns:", clean_shipments.columns.tolist())
 
 #### Briefly Give Answers to the Discussion Questions In This Section
 
-::: {.callout-tip title="Drop Mental Model - Answers"}
-**Ans.1**
-
-- .drop(columns=['quantity']) removes the specified columns from the DataFrame, while .filter() keeps only the listed columns and drops all others.
-
--  Use drop when you have a large DataFrame and want to remove just a few known, irrelevant columns. Use filter when you want a precise subset of important columns.
-
-**Ans.2**
-
-- .dropna() without a subset drops any row that contains a missing value (NaN) in any column, whereas .dropna(subset=['plannedShipDate', 'actualShipDate']) removes only those rows where one or both of these specific columns have missing values. 
-
-- To prevent unintentional data loss and maintain high-quality data for accurate analysis.
-:::
+> Replace this with your answers to the discussion questions
 
 ### 4. Sort: Arranging Data
 
@@ -412,28 +449,7 @@ print(sorted_by_lateness[['shipID', 'partID', 'days_late', 'is_late']].head(10))
 
 #### Briefly Give Answers to the Discussion Questions In This Section
 
-::: {.callout-tip title="Sort Mental Model - Answers"}
-**Ans.1**
-
-- ascending=False → sorts largest to smallest; ascending=True → sorts smallest to largest (default).
-- You can sort by more than one column by passing a list of column names and corresponding sort orders:
-```{python}
-#Example:
-
-clean_shipments.sort_values(
-    by=['is_late', 'days_late'],
-    ascending=[False, False]  # or [True, False] depending on desired order
-    ).head(5)
-```
-
-**Ans.2**
-
-- When you sort a DataFrame, pandas reorders the rows but keeps the original row indices.
-That means the index values may now appear out of order with respect to the sorted data.
-
-- After sorting, pandas retains the original index values attached to each row. This can lead to inconsistencies or confusion during joins/merges, plotting, or when referencing rows by index (e.g., df.iloc[x]).
-
-::: 
+> Replace this with your answers to the discussion questions
 
 ### 5. Aggregate: Summarizing Data
 
@@ -473,13 +489,7 @@ print(f"\nOn-time delivery rate: {on_time_rate:.1f}%")
 
 #### Briefly Give Answers to the Discussion Questions In This Section
 
-::: {.callout-tip title="Aggregate - Answers"}
-
-**Ans.1**
-
-In Python, True is treated as 1 and False as 0 when used in arithmetic operations. It counts the number of True values in column:'is_late'
-
-:::
+> Replace this with your answers to the discussion questions
 
 ### 6. Merge: Combining Information
 
@@ -518,25 +528,7 @@ print(shipments_with_category['prodCategory'].value_counts())
 
 #### Briefly Give Answers to the Discussion Questions In This Section
 
-::: {.callout-tip title="Merge Mental Model - Answers"}
-
-**Ans.1**
-
-- `Left Outer Join` keeps all rows from the "left" dataframe(clean_shipments) and add matching columns from the “right” DataFrame (product_line_df). If there are no match,fills the new columns with NaN
-
-```{python}
-print(f"Number of rows before the merge operation is {len(clean_shipments)}")
-print(f"Number of rows after the merge operation is {len(clean_shipments
-    .merge(product_line_df, on='partID', how='left'))}")
-```
-
-<font color=blue> Note: The clean_shipments DataFrame still contains 4,000 rows before and after the merge, indicating that using a left outer join is safe and does not risk accidentally losing critical data. </font>
-
-**Ans.2**
-
-- If partID values are duplicated, each shipment row will be repeated once for every matching entry in product_line_df.
-
-::: 
+> Replace this with your answers to the discussion questions
 
 ### 7. Split-Apply-Combine: Group Analysis
 
@@ -576,20 +568,7 @@ print(service_by_category)
 
 #### Briefly Give Answers to the Discussion Questions In This Section
 
-::: {.callout-tip title="Split-Apply-Combine - Answers"}
-
-**Ans.1**
-
-- `.groupby('prodCategory')` splits the DataFrame into multiple logical groups based on the values in prodCategory. Each group contains all rows with the same category
-
-- `.agg()` (aggregate) lets you apply summary functions like sum(),count() etc., to each group. Without using .agg() after grouping, pandas creates a grouped object, but it isn’t immediately useful for analysis unless you manually iterate over each group.
-
-**Ans.2**
-
-- Grouping by ['prodCategory'] aggregates the data at the product category level, producing one row per category with the corresponding summary statistics. In contrast, grouping by ['shipID', 'prodCategory'] aggregates the data at both the shipment and product category level, resulting in many more rows and statistics compared to grouping by product category alone.
-
-:::
-
+> Replace this with your answers to the discussion questions
 
 ## Answering A Business Question
 
@@ -633,35 +612,7 @@ print(f"Percentage with multiple categories: {multi_category_shipments['shipID']
 
 #### Briefly Give Answers to the Discussion Questions In This Section
 
-::: {.callout-tip title="Answering A Business Question"}
-
-**Ans.1a**
-
-The Analysis answers the following points:
-
-- Shipment-level performance by category:
-“For each shipment, which product categories had late items and by how many days?”
-
-- Complex shipments detection:
-“Which shipments contain multiple product categories?”
-
-- Category-level risk assessment within shipments:
-“Are shipments with multiple categories more likely to be late or have longer delays?”
-
-In short, it gives both shipment-level and category-level insights into lateness and complexity.
-
-**Ans.1b**
-
-- grouping by `'prodCategory'` : Aggregates all shipments into one row per category. Provides category-level summary: late %, avg/max days late, but ignores which shipment the items came from.
-
-- grouping by `['shipID', 'prodCategory']` : Aggregates per shipment per category. Preserves shipment-level detail, captures multi-category shipments, and avoids double-counting parts in the same shipment
-
-**Ans.1c**
-
-This analysis answers shipment-level performance questions, distinguishes multi-category shipments, and provides actionable insights for operational planning and risk management.
-
-:::
-
+> Replace this with your answers to the discussion questions
 
 ## Student Analysis Section: Mastering Data Manipulation {#student-analysis-section}
 
@@ -699,31 +650,6 @@ This analysis answers shipment-level performance questions, distinguishes multi-
 - Support the insights from your discussion questions
 - Be appropriate for a business audience
 - Do not `echo` the code that creates the visualizations
-
-::: {.callout-tip title="Visualizations"}
-
-```{python}
-
-service_by_category_plot = shipments_with_category.query('is_late == False').filter(['shipID', 'partID','prodCategory']).groupby('prodCategory')['shipID'].count().reset_index()
-
-# Set Seaborn style for professional look
-sns.set_style("whitegrid")
-plt.figure(figsize=(10, 6))
-
-sns.barplot(
-   x='prodCategory',
-    y='shipID',
-   data=service_by_category_plot,
-    palette='Blues_d'
-)
-
-# Add labels and title
-
-plt.title('Service Level by Product Category', fontsize=12, weight='bold')
-
-```
-
-:::
 
 ## Challenge Requirements 📋
 
